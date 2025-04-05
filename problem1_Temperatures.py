@@ -8,20 +8,15 @@ df = pd.read_csv('EuCitiesTemperatures.csv')
 #preprocssing
 #1: filling missng vals for lat and long
 # missing latitudes
-df['latitude'] = df['latitude'].fillna(
-    df.groupby('country')['latitude'].transform(lambda x: round(x.mean(), 2))
-)
+df['latitude'] = df['latitude'].fillna(df.groupby('country')['latitude'].transform(lambda x: round(x.mean(), 2)))
 
 # missing longitudes
-df['longitude'] = df['longitude'].fillna(
-    df.groupby('country')['longitude'].transform(lambda x: round(x.mean(), 2))
-)
+df['longitude'] = df['longitude'].fillna(df.groupby('country')['longitude'].transform(lambda x: round(x.mean(), 2)))
 
 #PREPROCESSING 2:  Find out the subset of cities that lie between latitudes 40 to 60 (both inclusive) and longitudes 15 to 30 (both inclusive). 
 #Find out which countries have the maximum number of cities in this geographical band. (More than one country could have the maximum number of values.)
 # cities in the geographic band
-band_df = df[(df['latitude'] >= 40) & (df['latitude'] <= 60) &
-             (df['longitude'] >= 15) & (df['longitude'] <= 30)]
+band_df = df[(df['latitude'] >= 40) & (df['latitude'] <= 60) & (df['longitude'] >= 15) & (df['longitude'] <= 30)]
 
 # count of the number of cities per country
 country_counts = band_df['country'].value_counts()
