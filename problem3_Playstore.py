@@ -32,4 +32,29 @@ google_df
 #The value "5.6.7" should be changed to "5.6".
 
 
-DID NOT COMPLETE YET!!! Still figuring it out 
+#DID NOT COMPLETE YET!!! Still figuring it out 
+import re
+
+# andrroid CLEANING preprocess
+def clean_android_version(val):
+    if pd.isna(val):
+        return None
+    val = str(val)
+    
+    # REGEX look up regex again
+    val = val.split('-')[0].strip()
+    
+    # "and up"
+    val = re.sub(r'[^0-9\.]', '', val)
+    
+    # correct decimal formatting FITHT TRY
+    parts = val.split('.')
+    if len(parts) >= 2:
+        return f"{parts[0]}.{parts[1]}"
+    elif len(parts) == 1:
+        return parts[0]
+    else:
+        return None
+
+google_df["Android Ver"] = google_df["Android Ver"].apply(clean_android_version)
+google_df
