@@ -78,53 +78,48 @@ google_df
 # If reviews < 100 and installs < 50000, remove the row
 # Otherwise, fill with average rating for that category
 
-# First, identify rows with missing ratings
 missing_ratings = google_df['Rating'].isna()
 
-# Create a condition for rows to remove (reviews < 100 AND installs < 50000)
+# reviews < 100 AND installs < 50000
 remove_condition = (google_df['Reviews'].astype(float) < 100) & (google_df['Installs'] < 50000)
 
-# Rows to remove: missing rating AND meets the removal condition
+# remove: missing rating AND meets the removal condition
 rows_to_remove = missing_ratings & remove_condition
 
-# Remove those rows
+# remove
 google_df = google_df[~rows_to_remove]
 
-# For remaining rows with missing ratings, fill with category average
-# Calculate average rating by category (rounded to 2 decimal places)
+#  average rating by category (rounded to 2 decimal places)
 category_avg_rating = google_df.groupby('Category')['Rating'].mean().round(2)
 
-# Fill missing ratings with the category average
 for category in google_df['Category'].unique():
     category_mask = (google_df['Category'] == category) & (google_df['Rating'].isna())
     google_df.loc[category_mask, 'Rating'] = category_avg_rating[category]
 
-# Verify the result
 google_df
 
 # Convert Size values to integers (M to millions, K to thousands)
 # Using .loc to avoid the SettingWithCopyWarning
 #CONFUSING......... FIX THIS LATER. REMINDER: WHY DO WE GET THAT WARNING? TRY WITHOUT WARNING FIX, ALSO WHY DOES RATINGS BECOME NAN AGAIN
-# Define the conversion function
+
 def convert_size_to_int(size):
     
     size = str(size).strip()
     
-    # Convert M to millions
+    #  M to millions
     if 'M' in size:
         try:
             return int(float(size.replace('M', '')) * 1000000)
         except ValueError:
             return None
     
-    # Convert K to thousands
+    #  k to thousands
     elif 'k' in size:
         try:
             return int(float(size.replace('k', '')) * 1000)
         except ValueError:
             return None
     
-    # If already a number
     elif size.isdigit():
         return int(size)
     
@@ -140,7 +135,6 @@ google_df = google_df.copy()
 # Apply the conversion using .loc to avoid the warning
 google_df.loc[:, 'Size'] = google_df['Size'].apply(convert_size_to_int)
 
-# Check the results
 google_df
 
 
@@ -149,36 +143,25 @@ google_df
 # Describe category-wise rating statistics
 # Group by Category and then use describe() on the Rating column
 
-# Make sure Rating is numeric
 google_df['Rating'] = pd.to_numeric(google_df['Rating'], errors='coerce')
 
-# Group by Category and describe the Rating statistics
 category_rating_stats = google_df.groupby('Category')['Rating'].describe()
 
-# Round the results to 2 decimal places for better readability
 category_rating_stats = category_rating_stats.round(2)
 
-# Display the results
 print("Category-wise Rating Statistics:")
 category_rating_stats
 
 
-# Extract all "Free" apps
 free_apps = google_df[google_df['Type'] == 'Free'].copy()
 
-# Function to get top 3 apps in each category based on a specific column
 def get_top3_by_category(df, column):
-    # Sort values in descending order by the specified column
     sorted_df = df.sort_values(by=[column], ascending=False)
     
-    # Get top 3 per category
     top3 = sorted_df.groupby('Category').head(3)
     
-    # Select only the required columns
     result = top3[['Category', 'App', column]]
     
-    # Sort by Category for better readability
-    #result = result.sort_values('Category')
     
     return result
 
@@ -197,15 +180,12 @@ top3_reviews = get_top3_by_category(free_apps, 'Reviews')
 print("\nTop 3 Apps by Reviews for each Category:")
 print(top3_reviews.head(3))
 
-# Extract paid applications (where Type is 'Paid')
 paid_apps = google_df[google_df['Type'] == 'Paid']
 
-# Calculate statistics for the Price column
 avg_price = paid_apps['Price'].mean()
 max_price = paid_apps['Price'].max()
 min_price = paid_apps['Price'].min()
 
-# Display the results
 print(f"Paid Applications Price Statistics:")
 print(f"Average Price: ${avg_price:.2f}")
 print(f"Maximum Price: ${max_price:.2f}")
@@ -213,46 +193,64 @@ print(f"Minimum Price: ${min_price:.2f}")
 
 
 # VISUALIZATIONNNN  TRY REMOVING THE COMMENTED OUT TOP 15 PARTS AND RUN TO SEE IF WE DONT GET WARNING OR ERROR
-# Break genres into lists and count applications per genre
+
 import matplotlib.pyplot as plt
 
-# Convert Genre column to lists
 google_df['Genres'] = google_df['Genres'].str.split(';')
 
-# Explode the DataFrame so each genre gets its own row
+# explode the DataFrame so each genre gets its own row
 exploded_df = google_df.explode('Genres')
 
-# Strip whitespace from genre names
 exploded_df['Genres'] = exploded_df['Genres'].str.strip()
 
-# Count applications per genre
 genre_counts = exploded_df['Genres'].value_counts()
 
-# Display the counts
 print("Number of Applications per Genre:")
-print(genre_counts)  # Show top 10 genres
+print(genre_counts)  
 
-# Create a pie chart
 plt.figure(figsize=(12, 8))
 
-# Select top N genres for better readability (showing all might be too cluttered)
-#top_n = 15
-#top_genres = genre_counts.head(top_n)
 top_genres = genre_counts
-#other_count = genre_counts[top_n:].sum()
 
-# Create a new series with top genres and "Other"
 plot_data = top_genres.copy()
-#if len(genre_counts) > top_n:
-   # plot_data['Other'] = other_count
 
-# Create the pie chart
+# the pie chart
 plt.pie(plot_data, labels=plot_data.index, autopct='%1.1f%%', 
         startangle=90, shadow=True)
-plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle
+plt.axis('equal')  
 plt.title(f'Distribution of Applications by Genre')
 
-# Add a legend outside the pie chart for better readability
 plt.legend(plot_data.index, loc="best", bbox_to_anchor=(1, 0.5))
 
+plt.show()
+
+
+#LAST PART
+import matplotlib.pyplot as plt
+
+#  include only Business and Education categories
+business_ratings = google_df[google_df['Category'] == 'BUSINESS']['Rating'].dropna()
+education_ratings = google_df[google_df['Category'] == 'EDUCATION']['Rating'].dropna()
+
+
+plt.figure(figsize=(10, 6))
+
+# boxplot
+boxplot = plt.boxplot([business_ratings, education_ratings], 
+                      tick_labels=['BUSINESS', 'EDUCATION'],
+                      patch_artist=True)
+
+
+# title and labels
+plt.title('Comparison of Ratings: Business vs Education Apps', fontsize=16)
+plt.xlabel('Category', fontsize=14)
+plt.ylabel('Rating', fontsize=14)
+
+# gridlines for better readability
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+#  y-axis limits to show full rating scale
+plt.ylim(0, 5.5)
+
+plt.tight_layout()
 plt.show()
