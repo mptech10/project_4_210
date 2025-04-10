@@ -194,33 +194,37 @@ print(f"Minimum Price: ${min_price:.2f}")
 
 # VISUALIZATIONNNN  TRY REMOVING THE COMMENTED OUT TOP 15 PARTS AND RUN TO SEE IF WE DONT GET WARNING OR ERROR
 
+# VISUALIZATIONNNN
+#PIECHART
 import matplotlib.pyplot as plt
-
+import pandas as pd
+# convert Genre column to lists
 google_df['Genres'] = google_df['Genres'].str.split(';')
 
 # explode the DataFrame so each genre gets its own row
 exploded_df = google_df.explode('Genres')
 
-exploded_df['Genres'] = exploded_df['Genres'].str.strip()
+# strip whitespace from genre names
+exploded_df['Genres'] = exploded_df['Genres'].astype(str).str.strip()
 
 genre_counts = exploded_df['Genres'].value_counts()
 
+# counts
 print("Number of Applications per Genre:")
 print(genre_counts)  
+
 
 plt.figure(figsize=(12, 8))
 
 top_genres = genre_counts
-
 plot_data = top_genres.copy()
+
 
 # the pie chart
 plt.pie(plot_data, labels=plot_data.index, autopct='%1.1f%%', 
         startangle=90, shadow=True)
-plt.axis('equal')  
+plt.axis('equal') 
 plt.title(f'Distribution of Applications by Genre')
-
-plt.legend(plot_data.index, loc="best", bbox_to_anchor=(1, 0.5))
 
 plt.show()
 
